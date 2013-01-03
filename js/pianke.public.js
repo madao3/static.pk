@@ -1,0 +1,4 @@
+Pianke.public = {
+  init : function(){
+  }
+}
