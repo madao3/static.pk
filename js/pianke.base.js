@@ -77,6 +77,15 @@ pageInit = function(){
       break;
     case 'public':
       Pianke.public.init();
+      break;
+    case 'feeling':
+    case 'fposts':
+      Pianke.topic.init();
+      Pianke.comment.init();
+      break;
+    case 'contribute':
+      Pianke.contribute.init();
+      break;
     default:
       break;
   }
@@ -104,24 +113,39 @@ if(!window.console){
 
 window.alert = function(msg){
   var className = "poplayer";
-  var poplayer = $("<div class='poplayer' style='left:50%;top:20%;'>"+msg+"</div>"),
-  width = $(window).width(),
-  height = $(window).height();
-  var left = (width - poplayer.width()) /2-40-5,
-  top = (height - poplayer.height())/2 + $(document.body).scrollTop();
-  poplayer.css("left",left+"px").css("top",top+"px");
+  var poplayer = $("<div class='poplayer' style='left:50%;top:20%;'>"+msg+"</div>");
   $(document.body).append(poplayer);
+  var width = $(window).width()
+     ,height = $(window).height()
+     ,left = (width - poplayer.width()) /2 - 40 - 5
+     ,top  = (height - poplayer.height())/2 + $(document.body).scrollTop();
+  poplayer.hide().css({
+    left : left,
+    top : top
+  }).fadeIn(500);
   setTimeout(function(){
-    $("body > .poplayer").remove();
+    $("body .poplayer").remove();
   },2000);
 }
 
-window.confirm = function(msg,callback){
+window.confirm = function(msg,callback,isFollow,el){
   var confirm = $('#fix_confirm');
   confirm.show().find('.inner').text(msg)
   .end().find('.cancel').unbind('click').bind('click',function(){confirm.hide();})
   .end().find('.primary').unbind('click').bind('click',function(){
     callback();
     confirm.hide();
-  })  
+  })
+  if(isFollow){
+    var box = confirm.find('.delete')
+    console.log(window.a = box,window.b = el)
+    confirm.css({
+      overflow : 'visible',
+      position : 'absolute'
+    })
+    box.css({
+      left : el.offset().left - el.width(),
+      top  : el.offset().top  - el.height()
+    });
+  }
 }

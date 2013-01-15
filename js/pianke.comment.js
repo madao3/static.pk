@@ -1,14 +1,23 @@
 Pianke.comment = {
+  is20 : false,
   init : function(){
     this.bindEvent();
     if($('#comment_isdetail').length!=0){
       var contentid = $('#comment_contentid').val();
       var isdetail  = $('#comment_isdetail').val();
+      this.is20 = true;
       this.getcomment($('.entry'),isdetail,1);
     }
   },
   bindEvent : function(){
     var that = this;
+    $('.get_comment').live('click',function(){
+      var el = $(this).parent().next();
+      console.log(el)
+      el  = el.length?el:$(this).parents('.own').find('.cont,.arrow_top').show().end().find('.entry');
+      console.log(window.a = el)
+      Pianke.comment.getcomment(el,0,1);
+    })
     $('.entry .send,.entry .sendn').live('click',function(){
       that.submitcomment($(this))
     });
@@ -22,7 +31,6 @@ Pianke.comment = {
       el = $(this).parents('.entry');
       if(page){
         that.getcomment(el,1,page[1]);
-        $(document).scrollTop(el.offset().top-80)
       }
       return false;
     });
@@ -38,13 +46,14 @@ Pianke.comment = {
       that.replycomment(pid,cid,uid,name,textarea);
     });
   },
-  getcomment : function(el,isdetail,page) {
+  getcomment : function(el,isdetail,page,is20) {
     var box   = el
        ,list  = box.find('.comment_list')
        ,textarea   = box.find('textarea')
        ,pagination = box.find('.pagination')
        ,contentid  = box.find('.send,.sendn').attr('data-id')
        ,arrow      = el.prev('.arrow_top')
+       ,that  = this
     if('' == contentid || "undefined" == typeof(contentid)) {
       return false;
     }
@@ -52,7 +61,7 @@ Pianke.comment = {
     if('' == type || "undefined" == typeof(type)) { return false;}
     if('' == page || "undefined" == typeof(page)) { page = 1;}
     if(isdetail != 1){
-      var display = textarea.is(':visible')
+      var display = el.is(':visible')
       if(!display){
         box.show();
         box.next('.cl').show()
@@ -64,7 +73,13 @@ Pianke.comment = {
         box.next('.cl').hide()
       }
     }
-    $.getJSON('/api/comment/get.php', {'contentid':contentid,'type':type,'page':page,'listtype':2},
+    var params = {
+      contentid:contentid,
+      type:type,
+      page:page,
+      pagesize:that.is20?20:10
+    }
+    $.getJSON('/api/comment/get.php', params,
     function (result){
       if(result.code != 'A00000'){
         return false;
@@ -122,10 +137,11 @@ Pianke.comment = {
               list.find("li:first").before(result.data.data.list);
             }
             var num = number.html()
-            if ('' == num || "undefined" == typeof(num)) {
+            if('' == num || "undefined" == typeof(num) || isNaN(num)){
               num = 0;
             }
             num = parseInt(num) + 1;
+            num = isNaN(num) ? 1 : num;
             number.html(num).removeClass("no")
             return true;
           default :

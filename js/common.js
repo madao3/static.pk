@@ -389,6 +389,9 @@ function submitfeedback() {
  */
  function openlogintip() {
    $("#fixedlogin").show();
+   var dh = $(document.body).height()
+      ,wh = $(window).height()
+      ,height = wh>dh?wh:dh;
    $("#fixedlogin .mask").css("height",$(document.body).height());
    return true;
  }
@@ -546,9 +549,9 @@ function submitfeedback() {
 
 
  $(function(){ 
-  if(PKINFO.uinfo){
-    msg_list_init()
-  }
+   if(PKINFO.uinfo){
+     msg_list_init()
+   }
    $("#notice_box").find("span:first>a").click(function(){
      $("#notice_box").remove();
      return false;
@@ -581,40 +584,64 @@ function submitfeedback() {
      }
    );
     
-   $("span.cardiconfav").live("click",function(){
+   $(".fav_btn").live("click",function(){
      if(PKINFO.islogin != 1){
-       openlogintip();return false;
+       openlogintip();
+       return false;
      }
-     var iconobj = $(this).find("a");
-     var classval = iconobj.attr("class");
-     var contentid = iconobj.attr("f-contentid");
-     if(classval == "sc"){
-       var paraobj = {'contentid':contentid};
-       $.post('/api/fav/addfav.php', paraobj,
-       function (ret){
-         if(ret.code != 'A00000'){
-           alert(ret.data.msg);
+     var el = $(this)
+     ,id = el.attr("f-contentid")
+     ,params = {'contentid':id}
+     ,bool = el.hasClass("on")
+     ,url  = '/api/fav/'+(bool?'delfav':'addfav')
+     ,text = bool?'收藏':'取消收藏'
+     ,num  = parseInt(el.find('.number').text(),10)
+     ,num  = (isNaN(num)?0:num) + (bool?-1:1)
+     if(el.hasClass('gray')){
+       return false;
+     }
+     el.text('收藏中').addClass('gray')
+     $.post(url, params,
+       function (data){
+         if(data.code != 'A00000'){
+           alert(data.data.msg);
            return false;
          }else{
-           iconobj.attr("class","sced");
-           return false;
-         }
-       },'json');	 
-     }else{
-       var paraobj = {'contentid':contentid};
-       $.post('/api/fav/delfav.php', paraobj,
-       function (ret){
-         if(ret.code != 'A00000'){
-           alert(ret.data.msg);
-           return false;
-         }else{
-           iconobj.attr("class","sc");
+           el.toggleClass("on gray").text(text)
+           if(num!=0){
+             el.append('<span class="number">'+num+'</span>')
+           }
            return false;
          }
        },'json');
-     }
    });
-
+   $('.sc,.sced').live('click',function(){
+     if(PKINFO.islogin != 1){
+       openlogintip();
+       return false;
+     }
+     var el = $(this)
+     ,id = el.attr("f-contentid")
+     ,params = {'contentid':id}
+     ,url  = '/api/fav/'+(bool?'delfav':'addfav')
+     if(el.hasClass('gray')){
+       return false;
+     }
+     el.addClass('gray');
+     $.post(url, params,
+       function (data){
+         if(data.code != 'A00000'){
+           alert(data.data.msg);
+           return false;
+         }else{
+           el.toggleClass("sc sced gray");
+           return false;
+         }
+       },'json');
+   })
+   
+   
+   
    $(".share .xl,.ico .xl,.icon6 .xl").live("click", function(){
      _shareJump(this,'sina',$(this).attr('ref'));
    });
@@ -663,7 +690,7 @@ function submitfeedback() {
         ,s_type = bool?"?r=subjectshare":"?r=postshare"
         ,local_url = "http://pianke.me"
         local_url += bool?'/subject/'+$(obj).parents('.icon').attr('data-id'):location.pathname;
-        local_url  += s_type;
+        local_url  += s_type
    }else if(flag == 'card'){
      local_url = "http://pianke.me"+$(obj).parents('.inclode').find('a').attr('href');
      content = '我在片刻发现了一张不错的词卡，你也来看看。';
@@ -784,14 +811,17 @@ function submitfeedback() {
    }
    PKINFO.msglist.hide();
    msg_list_round();
-   PKINFO.ePublicWord.id = setInterval("msg_list_round()",15000);//30秒检查一遍新通知
+   PKINFO.ePublicWord.id = setInterval("msg_list_round()",15000);
  }
 
+   var uid_url = "profile/" + PKINFO.uinfo.uid + "/fans";
  PKINFO.ePublicWord = {
    comment:["条新评论","commentbox/inbox","查看评论"],
    attitude:["个新推荐","likebox/inbox","查看推荐"],
    notice:["条新通知","notify/inbox","查看通知"],
-   card:["张新卡片","cardbox/inbox","查看Card"],	
+   card:["张新卡片","cardbox/inbox","查看Card"],
+   friend:["个新粉丝",uid_url,"查看新粉丝"],
+   fav:["个新收藏","/favbox/inbox",'查看新收藏'],
    a:"abc",
    close:false,
    id:0
@@ -803,7 +833,7 @@ function submitfeedback() {
    return false;
  }
  var msg_list_show = function(data){
-   if(!data||(!data.comment&& !data.attitude&&!data.notice&&!data.card)){
+   if(!data||(!data.comment&& !data.attitude&&!data.notice&&!data.card&&!data.friend)){
      $(".new_idea").hide();
      return false;
    }
@@ -826,7 +856,8 @@ function submitfeedback() {
          if(rs.data.list.comment>PKINFO.public_msg.comment ||
            rs.data.list.attitude>PKINFO.public_msg.attitude ||
            rs.data.list.card>PKINFO.public_msg.card ||
-           rs.data.list.notice>PKINFO.public_msg.notice ){//有变化了，在去修改msg_list
+           rs.data.list.notice>PKINFO.public_msg.notice ||
+		   rs.data.list.friend>PKINFO.public_msg.friend ){//有变化了，在去修改msg_list
              msg_list_show(rs.data.list);
            }
          }
@@ -851,13 +882,14 @@ function submitfeedback() {
    }
 
 
-   function openOauth(){
-     setcookie("is_weibo",null);
+   function openOauth(obj){
+   	 var source = $(obj).attr('source');
+     setcookie("is_"+source,null);
      var o = window.open ('', 'newwindow', 'height=450, width=600, top=0, left=0, toolbar=no, menubar=no, scrollbars=no,resizable=no,location=no, status=no');
      var host = "http://"+window.location.host;
-     o.location = host+"/user/syncoauthurl.php?source=1";
+     o.location = host+"/user/syncoauthurl.php?source="+source;
      st = setInterval(function(){
-       if(getSpecificCookie('is_weibo').toString()=='true'){
+       if(getSpecificCookie("is_"+source).toString()=='true'){
          location.reload();
          clearInterval(st)
        }
@@ -869,7 +901,7 @@ function submitfeedback() {
        $.ajax({
          type: 'POST',
          url: '/api/user/delsync.php',
-         data: {'source':1},
+         data: {'source':$(el).attr('source')},
          success: function(res){
            if(res.code == 'A00000'){
              location.reload();
@@ -881,6 +913,7 @@ function submitfeedback() {
        });
      })
    }
+
 
    $(function(){ 
      $("#fb_email").focus(function(){
@@ -923,7 +956,7 @@ function submitfeedback() {
          showerrortip('非常感谢您的反馈意见~');
          $("#fb_cnt").val('');
          $("#fb_title").val('');
-         $("#fb_email").val('');			
+         $("#fb_email").val('');
          return true;
        }else{
          showerrortip(result.data.msg);

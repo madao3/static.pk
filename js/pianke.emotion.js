@@ -41,7 +41,7 @@ Pianke.emotion = {
     box.find('.emotionlist').remove()
     box.append(list);
     list.fadeIn(100,function(){box.find('.emotionlist').show();list.show();})
-    el.parents('.post_item').addClass('zindex');
+    el.parents('.post_item,.create_content').addClass('zindex');
     if(/commentbox/.test(location.pathname)){
       el.parents('li').addClass('zindex');
     }

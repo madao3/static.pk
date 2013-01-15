@@ -4,13 +4,13 @@ Pianke.timeline = {
   },
   bindEvent : function(){
     var that = this; 
-    $('#timelinelist .cls,#timelinelist .big,#timelinelist .big1').live('click',function(){
+    $('.model .cls,.model .big,.model .big1').live('click',function(){
       var model = $(this).parents('.model')
          ,block = model.parents('.block')
       model.toggleClass('zindex')
       .find('.item').toggleClass('layermo')
       .end().find('p').toggle()
-      .end().find('.big,.cls,.big1').toggle();
+      .end().find('.big,.big1').toggle();
       block.toggleClass('zindex');
     });
     $('.model').mouseleave(function(){
@@ -186,7 +186,7 @@ Pianke.timeline = {
     }
     var itemnum = el.parents('.block').find('.model').length
        ,params = {
-         'id':id
+         'contentid':id
        };
     $.post('/api/timeline/deltalk.php', params,
       function (result){

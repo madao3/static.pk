@@ -56,10 +56,6 @@ Pianke.theater = {
       var id = $(this).attr('data-id');
       that.theater_submit(true,id);
     });
-    $('.get_comment').live('click',function(){
-      var el = $(this).parents('.own').find('.entry');
-      Pianke.comment.getcomment(el,0,1)
-    });
     $('.sendn').live('click',function(){
       Pianke.comment.submitcomment($(this),0,1);
     })

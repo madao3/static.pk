@@ -159,10 +159,6 @@ Pianke.wordcard = {
          ,id = el.parents('.icon').attr('data-id') || el.attr('data-id');
       that.submitlike(id,el);
     });
-    $('.post_item .get_comment').live('click',function(){
-      el = $(this).parent().next();
-      Pianke.comment.getcomment(el,0,1);
-    });
     $('.card_load').live('click',function(){
       that.loadmorewordcard('new')
     });
@@ -227,7 +223,7 @@ Pianke.wordcard = {
       return false;
     }
     var params = {
-      'postsid':postsid
+      'contentid':postsid
     };
     $.post('/api/wordcard/delposts.php', params,
     function (result){
